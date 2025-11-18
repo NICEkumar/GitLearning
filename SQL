@@ -135,4 +135,65 @@ select a.sroll,a.firstname,a.dob,b.cityname,c.statename from student a, connectt
 
 select a.sroll,a.firstname,a.dob,b.cityname,c.statename from student a inner join connecttable d on (a.sroll=d.sroll) 
 inner join citytable b on (d.cityid=b.cityid) inner join statetable c on(b.stateid=c.stateid);
- 
+
+
+SELECT 
+    c.cityname,
+    COUNT(ct.sroll) AS student_count,
+    CASE 
+        WHEN COUNT(ct.sroll) = 0 THEN 'city not allocated'
+        ELSE 'allocated'
+    END AS status
+FROM 
+    citytable c
+LEFT JOIN 
+    connecttable ct ON c.cityid = ct.cityid
+GROUP BY 
+    c.cityid, c.cityname;
+
+
+SELECT 
+    c.cityname,
+    COUNT(ct.sroll) AS no_of_students
+FROM citytable c
+LEFT JOIN connecttable ct
+    ON c.cityid = ct.cityid
+GROUP BY c.cityname;
+
+
+SELECT s.sroll, s.firstname, s.lname
+FROM student s
+LEFT JOIN connecttable c
+    ON s.sroll = c.sroll
+WHERE c.cityid IS NULL;
+
+
+SELECT 
+    s.sroll,
+    s.firstname,
+    st.subject
+FROM student s
+JOIN markstable m ON s.sroll = m.sroll
+JOIN subjecttable st ON m.subjectid = st.subid
+WHERE m.testnum = 1;
+
+
+SELECT 
+    s.sroll,
+    s.firstname
+FROM student s
+LEFT JOIN markstable m 
+       ON s.sroll = m.sroll 
+       AND m.testnum = 1
+WHERE m.sroll IS NULL;
+
+
+SELECT 
+    st.statename,
+    COUNT(c.cityid) AS number_of_cities
+FROM statetable st
+LEFT JOIN citytable c
+    ON st.stateid = c.stateid
+GROUP BY st.statename;
+
+
