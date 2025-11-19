@@ -135,8 +135,7 @@ select a.sroll,a.firstname,a.dob,b.cityname,c.statename from student a, connectt
 
 select a.sroll,a.firstname,a.dob,b.cityname,c.statename from student a inner join connecttable d on (a.sroll=d.sroll) 
 inner join citytable b on (d.cityid=b.cityid) inner join statetable c on(b.stateid=c.stateid);
-
-
+ -------------------------------------------------------------------------------------------------------------------
 SELECT 
     c.cityname,
     COUNT(ct.sroll) AS student_count,
@@ -195,5 +194,182 @@ FROM statetable st
 LEFT JOIN citytable c
     ON st.stateid = c.stateid
 GROUP BY st.statename;
+------------------------------------------------------------------------------------------------------
+-- inner join --
+select a.stateid, a.statename,b.cityid,b.cityname from statetable a inner join citytable b on (a.stateid=b.stateid); 
+
+-- left  outer join --
+select a.stateid, a.statename,b.cityid,b.cityname from statetable a left outer join citytable b on (a.stateid=b.stateid); 
+
+-- Equi join --
+select a.stateid,a.statename,b.cityid,b.cityname from statetable a inner join citytable b on(a.stateid=b.stateid and a.stateid='S02');
+
+-- Non Equi Joim --
+select a.stateid,a.statename,b.cityid,b.cityname from statetable a inner join citytable b on(a.stateid=b.stateid and a.stateid <> 'S02');
+
+-- inbuilt function --
+select upper(firstname) fname from student;
+select round(1234.44,1);
+select round(1234.44,-1);
 
 
+select count(cityid) ncity, stateid from citytable group by stateid;
+
+select a.stateid,a.statename from statetable a;
+
+-- number of cities in eact state--
+select a.stateid,a.statename,ifnull(b.ncity,'No city allocated') as numberofcity from statetable a left outer join(select count(cityid) ncity, stateid from citytable group by stateid) b on (a.stateid=b.stateid);
+
+
+select count(sroll) as nstudent, cityid from connecttable group by cityid;
+
+-- display number of student in each city if student are not there show city not allocated --
+select c.cityid,c.cityname,ifnull(b.nstudent,'No student  allocated') from citytable c left outer join (
+select count(sroll) as nstudent, cityid from connecttable group by cityid) b on (c.cityid=b.cityid);
+
+-- select a.cityid,a.cityname,b.nstudent from citytable a left outer join(select count(sroll) as nstudent,cityid from connecttable group by cityid)  b on (a.sroll=b.sroll) ;--
+
+-- show all student to whom city is not allocated --
+select a.sroll,a.firstname,b.cityid from student a left outer join connecttable b on a.sroll=b.sroll where b.cityid is null;
+
+-- subject taken by each student--
+select a.sroll,a.firstname,b.subjectid,c.subject from student a inner join markstable b on a.sroll=b.sroll inner join subjecttable c on b.subjectid=c.subid;
+
+-- display a list of student who stay in udupi--
+select sroll,firstname,dob from student where sroll in (select sroll from connecttable where cityid in(select cityid from citytable where cityname='Udupi'));
+
+-- List the students whose test performane is greater than 90 percent in first test--
+select sroll,firstname from student where sroll in(select sroll from markstable where testnum=1 and marks>90);
+
+-- list the student where average performance is greater then 70 percent--
+select sroll,firstname from student where sroll in (select sroll from markstable group by sroll having avg(marks)>70);
+
+-- list student id,student name, test numb,avg performance tesrwise is greater than 80%--
+select sroll,avg(marks) av,testnum from markstable group by sroll, testnum having avg(marks)>80;
+
+-- 
+select a.sroll,a.firstname,b.av,b.testnum from student a inner join (select sroll,avg(marks) av,testnum from markstable group by sroll, testnum having avg(marks)>80) b on (a.sroll=b.Sroll);
+
+
+-- list the student details along with the avg marks of first test with the result : fail,pass,1st class,Distinction--
+
+select a.sroll,b.av,
+case when b.av>90 then 'Distinction'
+when b.av>80 then '1st calss'
+when b.av>70 then 'Pass'
+else 'fail'
+end as result
+from  student a inner join (select sroll,avg(marks) av from markstable where testnum=1
+group by sroll) b on(a.sroll=b.sroll);
+
+-- write a query to diplay all the students whose birthday in december --
+select sroll,firstname,dob from student where sroll in (select sroll from student where extract(month from dob)=12);
+
+
+select *,timestampdiff(YEAR,dob,CURDATE()) age from student where month(dob)=12;
+
+create table employee(
+empid int primary key,
+empname varchar(20) not null,
+mid int references employee(empid));
+
+insert into employee values
+(101,'Arya',101),
+(102,'Amrutha',101),
+(103,'Nisarga',101),
+(104,'Neha',101),
+(105,'Jyotsna',102);
+select * from employee;
+ -- to retrive the name of the manager for each employee--
+select b.empid,b.empname,a.empname manager from employee a inner join employee b on(a.empid=b.mid);
+
+-- number of employee under each manager--
+select mid,count(mid) nemp from employee group by mid;
+
+select a.empid,a.empname,b.nemp from employee a inner join(select mid, count(mid) nemp from employee group by mid) b on a.empid=b.mid; 
+
+select * from student;
+-- create view --
+create view stable as select * from student;
+select * from stable;
+drop view stable;
+ 
+ create view stable1 as select * from student;
+ select * from stable1;
+insert into stable1 values
+(1013,'aria','larry','2011-12-02','F');
+
+create view managerone as select sroll,firstname from student where sroll between 1001 and 1005 with check option;
+ select * from managerone;
+ 
+ create view sturesult as select a.sroll,b.av,
+case when b.av>90 then 'Distinction'
+when b.av>80 then '1st calss'
+when b.av>70 then 'Pass'
+else 'fail'
+end as result
+from  student a inner join (select sroll,avg(marks) av from markstable where testnum=1
+group by sroll) b on(a.sroll=b.sroll);
+select * from sturesult;
+
+-- nindex--
+create index ifname on student(firstname);
+
+
+-- storaged procedure--
+-- create a procedure to add 2 number --
+delimiter //
+create procedure addtwonumber(IN a INT ,IN B INT ,OUT C INT)
+begin
+SET c:=a+b;
+end//
+CALL ADDTWONUMBER(100,200,@C);
+select @c;
+
+delimiter //
+
+create function result1(a int)
+returns varchar(30)
+deterministic
+begin
+    declare output varchar(30);
+
+    case
+        when a > 90 then set output = 'Distinction';
+        when a > 80 then set output = 'First Class';
+        when a > 70 then set output = 'Pass';
+        else set output = 'Fail';
+    end case;
+
+    return output;
+end //
+
+delimiter ;
+
+ select a.sroll,b.av,
+ result1(b.av)
+ as result
+from  student a inner join (select sroll,avg(marks) av from markstable where testnum=1
+group by sroll) b on(a.sroll=b.sroll);
+
+-- create function to calculate income tax -- 
+ 
+-- create a trigger for backup data --
+create table sbackup as select * from student where sroll is null;
+ show tables;
+ alter table sbackup add column ( uname varchar(30), dt date);
+ describe sbackup;
+ 
+ delimiter //
+ create trigger yestrigger after delete on student
+ for each row
+ begin
+ insert sbackup values(OLD.sroll,OLD.firstname,OLD.lname,OLD.dob,OLD.gender,user(),curdate());
+ end //
+ delimiter ;
+ drop trigger yestrigger;
+  delimiter //
+
+select* from sbackup;
+  delete from student where sroll=1011;
+  
