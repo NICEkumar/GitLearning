@@ -372,4 +372,37 @@ create table sbackup as select * from student where sroll is null;
 
 select* from sbackup;
   delete from student where sroll=1011;
-  
+
+
+DELIMITER //
+
+CREATE PROCEDURE manage_student(
+    IN p_action VARCHAR(10),
+    IN p_sroll INT,
+    IN p_fname VARCHAR(50),
+    IN p_lname VARCHAR(20),
+    IN p_dob DATE,
+    IN p_gender VARCHAR(1)
+)
+BEGIN
+    IF p_action = 'INSERT' THEN
+        INSERT INTO student(sroll, fname, lname, dob, gender)
+        VALUES (p_sroll, p_fname, p_lname, p_dob, p_gender);
+    ELSEIF p_action = 'UPDATE' THEN
+        UPDATE student
+        SET fname = p_fname, lname = p_lname, dob = p_dob, gender = p_gender
+        WHERE sroll = p_sroll;
+    ELSEIF p_action = 'DELETE' THEN
+        DELETE FROM student
+        WHERE sroll = p_sroll;
+    END IF;
+END //
+
+DELIMITER ;
+
+CALL manage_student('INSERT', 1011, 'John', 'Doe', '2011-02-23', 'M');
+
+CALL manage_student('UPDATE', 1011, 'John', 'Smith', '2011-02-23', 'M');
+
+CALL manage_student('DELETE', 1011, NULL, NULL, NULL, NULL);
+
